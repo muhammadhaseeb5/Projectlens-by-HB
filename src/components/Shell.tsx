@@ -1,0 +1,26 @@
+import { useState } from 'react'
+import { NavLink,Outlet,Link,useNavigate } from 'react-router-dom'
+import { LayoutDashboard,FolderKanban,ClipboardList,Users,GraduationCap,MessageSquareText,ChartNoAxesCombined,Settings,PanelLeftClose,PanelLeftOpen,Search,Bell,ChevronDown,ArrowUpRight,LogOut,LifeBuoy,Command,Plus,Layers } from 'lucide-react'
+import { useWorkspace } from '../lib/workspace'
+import { supabase } from '../lib/supabase'
+import { initials } from '../lib/utils'
+import { Skeleton,Button } from './ui'
+const nav=[['','Overview',LayoutDashboard],['projects','Project library',FolderKanban],['assignments','Assignments',ClipboardList],['reviews','Review queue',MessageSquareText],['students','Students & groups',Users],['classes','Classes & sections',GraduationCap],['reports','Reports',ChartNoAxesCombined]] as const
+export function Logo(){return <span className="brand"><span className="brand-mark"><Layers size={23} strokeWidth={2}/></span>Project<span>Lens</span><span className="brand-dot"/></span>}
+export default function Shell(){
+ const w=useWorkspace(),navigate=useNavigate(),[collapsed,setCollapsed]=useState(false),[search,setSearch]=useState('')
+ const base=w.demo?'/demo':'/app',unread=w.data.notifications.filter(n=>!n.read_at).length
+ return <div className={'app-shell '+(collapsed?'collapsed':'')}>
+  <aside className="sidebar"><Link to={base} className="logo-link"><Logo/></Link><button className="workspace-switch" onClick={()=>navigate(base+'/classes')}><span className="workspace-icon"><GraduationCap size={20}/></span><span><b>Web Technology</b><small>{w.teacher?'Teacher workspace':'Student workspace'}</small></span><ChevronDown size={15}/></button>
+   <div className="nav-caption">WORKSPACE</div><nav>{nav.filter(x=>w.teacher||!['reviews','reports'].includes(x[0])).map(([path,title,Icon])=><NavLink key={path} to={base+(path?'/'+path:'')} end={path===''} title={collapsed?title:undefined}><Icon size={19}/><span>{title}</span>{path==='reviews'&&w.data.submission_versions.filter(v=>['submitted','resubmitted'].includes(v.status)&&w.projects.some(p=>p.id===v.project_id)).length>0&&<em>{w.data.submission_versions.filter(v=>['submitted','resubmitted'].includes(v.status)&&w.projects.some(p=>p.id===v.project_id)).length}</em>}</NavLink>)}</nav>
+   <div className="sidebar-bottom"><div className="help-card"><span className="help-symbol"><LifeBuoy size={21}/></span><b>A little clarity goes a long way.</b><p>Everything you need for a thoughtful project review.</p><Link to={base+'/guide'}>Explore the guide <ArrowUpRight size={14}/></Link></div><NavLink to={base+'/settings'}><Settings size={19}/><span>Settings</span></NavLink><button className="profile-button" onClick={()=>navigate(base+'/settings')}><span className="avatar teacher">{initials(w.profile?.name)}</span><span><b>{w.profile?.name||'Your account'}</b><small>{w.teacher?'Course instructor':'Student'}</small></span><ChevronDown size={15}/></button></div>
+  </aside>
+  <div className="main-shell"><header className="topbar"><button className="icon-btn sidebar-toggle" aria-label={collapsed?'Expand sidebar':'Collapse sidebar'} onClick={()=>setCollapsed(!collapsed)}>{collapsed?<PanelLeftOpen size={19}/>:<PanelLeftClose size={19}/>}</button><span className="top-breadcrumb">Workspace <span>/</span> <b>Web Technology</b></span><form className="global-search" onSubmit={e=>{e.preventDefault();navigate(base+'/projects?q='+encodeURIComponent(search))}}><Search size={17}/><input aria-label="Search projects" placeholder="Search anything…" value={search} onChange={e=>setSearch(e.target.value)}/><kbd><Command size={11}/> K</kbd></form><Link className="notification-button icon-btn" to={base+'/notifications'} aria-label={`Notifications${unread?`, ${unread} unread`:''}`}><Bell size={20}/>{unread>0&&<i/>}</Link><span className="top-divider"/><button className="avatar teacher" onClick={()=>navigate(base+'/settings')} aria-label="Open profile">{initials(w.profile?.name)}</button></header>
+  {w.demo&&<div className="demo-banner"><span><b>Demonstration workspace</b> · Example briefs, separate from real classroom data.</span><Link to="/login">Open your workspace <ArrowUpRight size={14}/></Link></div>}
+  <main id="main" className="page-content">{w.loading?<Skeleton/>:w.error?<div className="error-panel"><h2>We couldn’t load your workspace</h2><p>{w.error.message}</p><Button onClick={w.refresh}>Try again</Button></div>:<Outlet/>}</main>
+  <footer className="app-footer"><span>ProjectLens <span>·</span> A clearer view of every project.</span><span>Web Technology <span>·</span> Sir Hassan Abbas</span></footer></div>
+  <nav className="mobile-nav">{[['','Home',LayoutDashboard],['projects','Projects',FolderKanban],['assignments','Assignments',ClipboardList],['notifications','Inbox',Bell],['settings','Profile',Users]].map(([path,title,Icon]:any)=><NavLink key={path} to={base+(path?'/'+path:'')} end={path===''}><Icon size={20}/><span>{title}</span></NavLink>)}</nav>
+  {!w.teacher&&!w.loading&&<Link className="fab" aria-label="Create project" to={base+'/projects/new'}><Plus/></Link>}
+ </div>
+}
+export function SignOut(){const navigate=useNavigate();return <Button variant="secondary" onClick={async()=>{await supabase.auth.signOut();navigate('/')}}><LogOut size={16}/>Sign out</Button>}
