@@ -100,3 +100,5 @@ The security advisor’s remaining notice is **Leaked Password Protection Disabl
 Current implementation evidence and external verification limits are recorded in `VERIFICATION.md`.
 
 Official references used: [Vite](https://vite.dev/guide/), [Tailwind/Vite](https://tailwindcss.com/docs/installation/using-vite), [TanStack Query](https://tanstack.com/query/latest/docs/framework/react/overview), [Supabase RLS](https://supabase.com/docs/guides/database/postgres/row-level-security), [Auth redirects](https://supabase.com/docs/guides/auth/redirect-urls), and [Netlify/Vite](https://docs.netlify.com/build/frameworks/framework-setup-guides/vite/).
+#   P r o j e c t l e n s - b y - H B  
+ 
